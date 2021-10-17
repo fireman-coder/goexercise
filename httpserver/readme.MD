@@ -1,8 +1,9 @@
 1、容器运行
+拉取
   docker pull firemancoder/httpserver:xwjv1.0
-
+运行
   docker run -itd -p 8181:80 firemancoder/httpserver:xwjv1.0
-  
+发起请求
   curl http://ip:8181/header
 
 
