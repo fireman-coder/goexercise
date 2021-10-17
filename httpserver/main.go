@@ -38,9 +38,12 @@ func healthz(w http.ResponseWriter, r *http.Request) {
 
 func rootHandler(w http.ResponseWriter, r *http.Request) {
 	glog.V(2).Info("接口信息：获取请求头"," ip:",r.RemoteAddr," 状态码",http.StatusOK)
+	info:=""
 	for k, v := range r.Header {
 		w.Header().Set(k,strings.Join(v,","))
+		info+=strings.Join(v,",")
 	}
+	io.WriteString(w, info)
 	//w.WriteHeader(http.StatusBadRequest)
 }
 
@@ -49,4 +52,5 @@ func GetVeriosn(w http.ResponseWriter, r *http.Request) {
 	glog.V(2).Info("接口信息：GetVeriosn"," ip:",r.RemoteAddr," 状态码",http.StatusOK)
 	path:=os.Getenv("GOPATH")
 	w.Header().Set("GOPATH", path)
+	io.WriteString(w, path)
 }
