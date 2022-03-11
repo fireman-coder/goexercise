@@ -8,6 +8,7 @@
 * ingress
 
 二、实现：
+
 1、优雅启动 
    * 探针:readinessProbe
     
