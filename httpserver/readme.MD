@@ -14,3 +14,5 @@
   进入容器进程的network空间并查看
   
     nsenter -n -t pid ip addr
+
+3、将其部署至k8s，具体细节在HttpserverOnK8s文件内
