@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fireman
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: fireman.51.cafe
+      http:
+        paths:
+          - backend:
+              service:
+                name: httpsvc
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
