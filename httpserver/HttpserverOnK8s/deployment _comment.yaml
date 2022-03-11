@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: httpserver
+  name: httpserver
+spec:
+  #升级过程中的最大时间，超过最大时间没有升级完成，就会变成超时状态
+  progressDeadlineSeconds: 600
+  replicas: 2
+  #revisionHistoryLimit 可以定义保留的升级记录数，默认10
+  #revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: httpserver
+#滚动更新策略，maxSurge最大冗余25%，maxUnavailable最少不可用25%
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: httpserver
+    spec:
+      containers:
+        #这里的port没有用，因为程序里已经写死了。
+        - env:
+            - name: httpport
+              valueFrom:
+                configMapKeyRef:
+                  key: httpport
+                  name: myenv
+          image: fmeng.azurecr.io/httpserver:1.0
+          #注意： curl  127.0.0.1:8080/healthz ok，探针使用的是容器ip所以探针的端口要和程序的监听端口一致
+#          ports:
+#            - name: http
+#              containerPort: 80
+#              hostPort: 8080
+#              protocol: TCP
+  #拉取镜像的策略，
+  #IfNotPresent 只有当映像在本地还没有出现时才会被拉取。
+  #Always 总是拉取;Never 只使用本地镜像，从不拉取
+          imagePullPolicy: IfNotPresent
+ #探测：探活、可读、startupprobe
+ #LivenessProbe容器是否活着，如果没活着，删除重建
+ #readinessprobe：容器是否就绪，标识它no ready，不会接收来自service的流量，规则自配
+ #startupprobe：类似于readinessprobe，只是在启动时，频率很低
+ #3种方式 http get，tcp socket、exec
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+#这里现在了configmap文件的port信息，不好
+              port: 80
+              scheme: HTTP
+     #延迟开始
+            initialDelaySeconds: 5
+     #频率
+            periodSeconds: 10
+     #探针的成功的阈值，在达到该次数时，表示成功。
+            successThreshold: 1
+     #timeoutSeconds 执行探测的超时的秒数，默认值 1，最小值 1。
+            timeoutSeconds: 1
+          name: httpserver
+          readinessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /healthz
+              port: 80
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+ #资源限制，3种Qos，对应资源不足时的驱逐策略
+          resources:
+            limits:
+              cpu: 200m
+              memory: 100Mi
+            requests:
+              cpu: 20m
+              memory: 20Mi
+  #容器的异常终止消息的路径，默认在 /dev/termination-log 下。
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+#  ClusterFirst：通过CoreDNS来做域名解析，Pod内/etc/resolv.conf配置的DNS服务地址是集群DNS服务的kube-dns地址。该策略是集群工作负载的默认策略。
+#  None：忽略集群DNS策略，需要您提供dnsConfig字段来指定DNS配置信息。
+#  Default：Pod直接继承集群节点的域名解析配置。即在ACK集群直接使用ECS的/etc/resolv.conf文件（文件内配置的是阿里云DNS服务）。
+#  ClusterFirstWithHostNet：强制在hostNetWork网络模式下使用ClusterFirst策略（默认使用Default策略）。
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: cloudnative
+ #重启策略
+      restartPolicy: Always
+ #私有的docker仓库(harbor)，需要用户认证之后，才能拉取镜像。
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
