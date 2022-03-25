@@ -28,7 +28,7 @@ spec:
                 configMapKeyRef:
                   key: httpport
                   name: myenv
-          image: fmeng.azurecr.io/httpserver:1.0
+          image: firemancoder/httpserver:xwjv1.0
           imagePullPolicy: IfNotPresent
           livenessProbe:
             failureThreshold: 3
