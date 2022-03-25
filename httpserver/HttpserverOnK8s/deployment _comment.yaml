@@ -33,7 +33,7 @@ spec:
                 configMapKeyRef:
                   key: httpport
                   name: myenv
-          image: fmeng.azurecr.io/httpserver:1.0
+          image: firemancoder/httpserver:xwjv1.0
           #注意： curl  127.0.0.1:8080/healthz ok，探针使用的是容器ip所以探针的端口要和程序的监听端口一致
 #          ports:
 #            - name: http
